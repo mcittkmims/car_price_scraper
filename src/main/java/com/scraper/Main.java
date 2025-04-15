@@ -11,7 +11,7 @@ public class Main {
     public static void main(String[] args) {
 
         try(ThreeNinesExtractor threeNinesExtractor = new ThreeNinesExtractor("firefox")) {
-            List<Car> cars = threeNinesExtractor.extractCars();
+            List<Car> cars = threeNinesExtractor.extractCars("Renault", "Megane", "III");
             List<Car> filteredCars = CarHelper.filterByName("Renault Megane", CarHelper.filterValidOnly(cars));
 
             System.out.println("The cheapest car");

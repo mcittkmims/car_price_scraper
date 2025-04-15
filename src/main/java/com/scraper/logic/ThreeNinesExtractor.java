@@ -1,6 +1,7 @@
 package com.scraper.logic;
 
 import com.scraper.data.Car;
+import com.scraper.errors.CarFilterException;
 import com.scraper.errors.CarSectionInitException;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -48,27 +49,36 @@ public class ThreeNinesExtractor implements AutoCloseable {
             throw new CarSectionInitException();
         }
 
-
         try {
             this.applyCarFilter(brand, series, generation);
         } catch (WebDriverException e) {
-
+            throw new CarFilterException();
         }
 
         return this.extractCarsFromPages();
     }
 
     public List<Car> extractCars(String brand, String series) throws InterruptedException {
-        this.initiateCarPage();
+        try {
+            this.initiateCarPage();
+        }catch (WebDriverException e) {
+            throw new CarSectionInitException();
+        }
 
-        this.applyCarFilter(brand, series);
-
+        try {
+            this.applyCarFilter(brand, series);
+        }catch (WebDriverException e) {
+            throw new CarFilterException();
+        }
         return this.extractCarsFromPages();
     }
 
     public List<Car> extractCars(String brand) throws InterruptedException {
-        this.initiateCarPage();
-
+        try {
+            this.initiateCarPage();
+        }catch (WebDriverException e) {
+            throw new CarSectionInitException();
+        }
         this.applyCarFilter(brand);
 
         return this.extractCarsFromPages();
@@ -156,11 +166,9 @@ public class ThreeNinesExtractor implements AutoCloseable {
         while (hasNextPage) {
             Thread.sleep(1000);
 
-
             cars.addAll(ThreeNinesHTMLParser.extractCarPrices(driver.getPageSource()));
 
             WebElement nextButton = driver.findElement(By.className("Pagination_pagination__container__buttons__wrapper__icon__next__A22Rc"));
-
 
             if (nextButton.isEnabled()) {
                 ((JavascriptExecutor) driver).executeScript("arguments[0].click();", nextButton);
