@@ -3,10 +3,10 @@ package com.scraper.factory;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 
-public class ChromeWebDriver implements CarWebDriver {
+public class ChromeWebDriverFactory implements WebDriverFactory{
 
     @Override
-    public WebDriver init() {
+    public WebDriver createWebDriver() {
         return new ChromeDriver();
     }
 }
