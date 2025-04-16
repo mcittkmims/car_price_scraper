@@ -1,10 +1,10 @@
 package com.scraper.database;
 
-import com.scrapperscript.models.ErrorRecord;
-import com.scrapperscript.models.Product;
+import com.scraper.data.Car;
 
 import java.sql.CallableStatement;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 public class PostgreSQLHelper implements DatabaseHelper {
@@ -15,48 +15,28 @@ public class PostgreSQLHelper implements DatabaseHelper {
         this.connection = connection;
     }
 
-    public void executeInsertProductData(Product product) throws SQLException {
-
-        String procedureCall = "CALL product_pricing.insert_product_data(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-        try (CallableStatement stmt = connection.prepareCall(procedureCall)) {
-
-            stmt.setString(1, product.code);
-            stmt.setString(2, product.url);
-            stmt.setString(3, product.name);
-            stmt.setObject(4, product.price, java.sql.Types.FLOAT);
-            stmt.setObject(5, product.originalPrice, java.sql.Types.FLOAT);
-            stmt.setString(6, product.imageUrl);
-            stmt.setBoolean(7, product.inStock);
-            stmt.setBoolean(8, product.withPreorder);
-            stmt.setInt(9, product.sellerId);
-            stmt.setObject(10, product.occuredAt);
-
+    public void insertCarData(Car car) {
+        String statement1 = "INSERT INTO car_sales.car (car_name, car_year) VALUES (?, ?) ON CONFLICT (car_name, car_year) DO NOTHING";
+        try (PreparedStatement stmt = connection.prepareStatement(statement1)) {
+            stmt.setString(1, car.getName());
+            stmt.setInt(2, car.getYear());
             stmt.execute();
-
         } catch (SQLException e) {
-
-            System.err.println("Error executing InsertProductData: " + e.getMessage());
-            throw e;
+            System.err.println("Error inserting into the car table: " + car);
+            return;
         }
-    }
 
-    public void executeInsertScrapingError(ErrorRecord error) throws SQLException {
-
-        String procedureCall = "CALL product_pricing.insert_scraping_error(?, ?, ?)";
-
-        try (CallableStatement stmt = connection.prepareCall(procedureCall)) {
-
-            stmt.setString(1, error.productUrl);
-            stmt.setString(2, error.errorDescription);
-            stmt.setObject(3, error.occuredAt);
-
+        String statement2 = "INSERT INTO car_sales.sale_ad (car_id, car_price, car_kilometrage, currency) "+
+                            "SELECT car_id, ?, ?, ? FROM car_sales.car WHERE car_name = ? AND car_year = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(statement2)) {
+            stmt.setInt(1, car.getPrice());
+            stmt.setInt(2, car.getKilometrage());
+            stmt.setString(3, car.getCurrency());
+            stmt.setString(4, car.getName());
+            stmt.setInt(5, car.getYear());
             stmt.execute();
-
         } catch (SQLException e) {
-
-            System.err.println("Error executing InsertProductData: " + e.getMessage());
-            throw e;
+            System.err.println("Error inserting into the sale ad table: " + car);
         }
     }
 

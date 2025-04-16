@@ -1,27 +1,26 @@
 package com.scraper;
 
-import com.scraper.data.Car;
-import com.scraper.data.CarHelper;
+import com.scraper.database.Database;
+import com.scraper.database.PostgreSQLHelper;
+import com.scraper.domain.CarService;
 import com.scraper.logic.ThreeNinesExtractor;
-import org.openqa.selenium.firefox.FirefoxOptions;
 
-import java.util.List;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+
 
 public class Main {
     public static void main(String[] args) {
 
         try(ThreeNinesExtractor threeNinesExtractor = new ThreeNinesExtractor("firefox")) {
-            List<Car> cars = threeNinesExtractor.extractCars("Renault", "Megane", "III");
-            List<Car> filteredCars = CarHelper.filterByName("Renault Megane", CarHelper.filterValidOnly(cars));
+            try(Connection connection = Database.getConnection()){
+                CarService service = new CarService(threeNinesExtractor, new PostgreSQLHelper(connection));
+                    service.execute("Renault", "Megane", "III");
 
-            System.out.println("The cheapest car");
-            System.out.println(CarHelper.getMinPrice(filteredCars));
-            System.out.println("\nThe most expensive car");
-            System.out.println(CarHelper.getMaxPrice(filteredCars));
-            System.out.println("\nThe average price: " + CarHelper.getAveragePrice(filteredCars));
-
-            System.out.println(filteredCars);
-
+            }catch(SQLException e){
+                throw new RuntimeException(e);
+            }
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
