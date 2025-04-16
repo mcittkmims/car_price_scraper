@@ -58,6 +58,4 @@ public class CarService {
         System.out.println(CarHelper.getMaxPrice(cars));
         System.out.println("\nThe average price: " + CarHelper.getAveragePrice(cars));
     }
-
-
 }

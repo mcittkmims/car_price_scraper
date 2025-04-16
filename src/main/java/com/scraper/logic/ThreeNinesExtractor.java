@@ -3,6 +3,7 @@ package com.scraper.logic;
 import com.scraper.data.Car;
 import com.scraper.errors.CarFilterException;
 import com.scraper.errors.CarSectionInitException;
+import com.scraper.factory.CarWebDriver;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
@@ -19,28 +20,15 @@ public class ThreeNinesExtractor implements AutoCloseable {
     private WebDriver driver;
     private WebDriverWait wait;
 
-    public ThreeNinesExtractor(String browser) {
-        switch (browser.toLowerCase()) {
-            case "firefox":
-                this.driver = new FirefoxDriver();
-                break;
-            case "chrome":
-                this.driver = new ChromeDriver();
-                break;
-            default:
-                this.driver = new FirefoxDriver();
-                break;
-        }
-
+    public ThreeNinesExtractor(CarWebDriver browser) {
+        this.driver = browser.init();
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(10));
     }
-
 
     public ThreeNinesExtractor() {
         this.driver = new ChromeDriver();
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(10));
     }
-
 
     public List<Car> extractCars(String brand, String series, String generation) throws InterruptedException {
         try {
@@ -54,7 +42,6 @@ public class ThreeNinesExtractor implements AutoCloseable {
         } catch (WebDriverException e) {
             throw new CarFilterException();
         }
-
         return this.extractCarsFromPages();
     }
 
@@ -143,9 +130,7 @@ public class ThreeNinesExtractor implements AutoCloseable {
     }
 
     public void initiateCarPage() {
-
         driver.get(link);
-
         WebElement transportSectionLink = wait.until(
                 ExpectedConditions.elementToBeClickable(By.linkText("Transport"))
         );
@@ -159,7 +144,6 @@ public class ThreeNinesExtractor implements AutoCloseable {
     }
 
     public List<Car> extractCarsFromPages() throws InterruptedException {
-
         boolean hasNextPage = true;
 
         List<Car> cars = new ArrayList<>();
@@ -170,12 +154,11 @@ public class ThreeNinesExtractor implements AutoCloseable {
 
             WebElement nextButton = driver.findElement(By.className("Pagination_pagination__container__buttons__wrapper__icon__next__A22Rc"));
 
-            if (nextButton.isEnabled()) {
+            if (!nextButton.isEnabled()) {
                 ((JavascriptExecutor) driver).executeScript("arguments[0].click();", nextButton);
             } else {
                 hasNextPage = false;
             }
-
         }
         return cars;
     }

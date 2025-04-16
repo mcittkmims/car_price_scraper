@@ -8,6 +8,6 @@ import java.sql.SQLException;
 
 public interface DatabaseHelper {
 
-    public void insertCarData(Car product);
+    void insertCarData(Car product);
 
 }
