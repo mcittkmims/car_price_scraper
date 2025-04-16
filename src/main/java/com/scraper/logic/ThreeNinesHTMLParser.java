@@ -19,13 +19,10 @@ public class ThreeNinesHTMLParser {
     private static Pattern priceCurrencyPattern = Pattern.compile("\\d+(?:\\s+\\d+)*\\s+(.+)");
     private static Pattern carKilometragePattern = Pattern.compile("(\\d+(?:\\s+\\d+)*)");
 
-
     public static List<Car> extractCarPrices(String html) {
         List<Car> cars = new ArrayList<>();
         Document doc = Jsoup.parse(html);
-
         Elements carElements = doc.getElementsByClass("AdPhoto_wrapper__gAOIH");
-
 
         for (Element carElement : carElements) {
 
@@ -34,13 +31,23 @@ public class ThreeNinesHTMLParser {
             Integer carPrice = extractIntegerElement(carElement, "AdPrice_price__2L3eA", carPricePattern);
             String priceCurrency = extractStringElement(carElement, "AdPrice_price__2L3eA", priceCurrencyPattern);
             Integer carKilometrage = extractIntegerElement(carElement, "AdPrice_info__LYNmc", carKilometragePattern);
+            String link = extractByAttr(carElement,"AdPhoto_info__link__OwhY6","href");
 
-            cars.add(new Car(carName, carPrice, carKilometrage, carYear, priceCurrency));
-
+            cars.add(new Car(carName, carPrice, carKilometrage, carYear, priceCurrency, link));
         }
         return cars;
+    }
 
-
+    public static String extractByAttr(Element parentElement, String className, String attr){
+        Element targetElement = parentElement.getElementsByClass(className).first();
+        if (targetElement == null) {
+            return null;
+        }
+        String attrText = targetElement.attr(attr);
+        if (attrText.isBlank()){
+            return null;
+        }
+        return attrText;
     }
 
     public static String extractStringElement(Element parentElement, String className, Pattern pattern) {
@@ -54,7 +61,6 @@ public class ThreeNinesHTMLParser {
             return matcher.group(1);
         }
         return null;
-
     }
 
     public static Integer extractIntegerElement(Element parentElement, String className, Pattern pattern) {
@@ -73,6 +79,4 @@ public class ThreeNinesHTMLParser {
         }
         return null;
     }
-
-
 }

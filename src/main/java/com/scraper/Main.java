@@ -12,19 +12,14 @@ import java.sql.SQLException;
 
 public class Main {
     public static void main(String[] args) {
-
-        try(ThreeNinesExtractor threeNinesExtractor = new ThreeNinesExtractor("firefox")) {
+        String browser = "firefox";
+        try(ThreeNinesExtractor threeNinesExtractor = new ThreeNinesExtractor(browser)) {
             try(Connection connection = Database.getConnection()){
                 CarService service = new CarService(threeNinesExtractor, new PostgreSQLHelper(connection));
-                    service.execute("Renault", "Megane", "III");
-
-            }catch(SQLException e){
-                throw new RuntimeException(e);
+                    service.execute("Volvo", "960", "I");
             }
-        } catch (InterruptedException e) {
+        } catch (InterruptedException | SQLException e) {
             throw new RuntimeException(e);
         }
-
-
     }
 }

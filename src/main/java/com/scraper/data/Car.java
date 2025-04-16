@@ -6,13 +6,15 @@ public class Car {
     private Integer kilometrage;
     private Integer year;
     private String currency;
+    private String link;
 
-    public Car(String name, Integer price, Integer kilometrage, Integer year, String currency) {
+    public Car(String name, Integer price, Integer kilometrage, Integer year, String currency, String link) {
         this.name = name;
         this.price = price;
         this.kilometrage = kilometrage;
         this.year = year;
         this.currency = currency;
+        this.link = link;
     }
 
     @Override
@@ -23,6 +25,7 @@ public class Car {
                 ", kilometrage=" + kilometrage +
                 ", year=" + year +
                 ", currency='" + currency + '\'' +
+                ", link=" + link +
                 '}';
     }
 
@@ -66,4 +69,11 @@ public class Car {
         this.currency = currency;
     }
 
+    public String getLink() {
+        return link;
+    }
+
+    public void setLink(String link) {
+        this.link = link;
+    }
 }

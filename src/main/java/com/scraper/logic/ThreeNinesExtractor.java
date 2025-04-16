@@ -3,9 +3,8 @@ package com.scraper.logic;
 import com.scraper.data.Car;
 import com.scraper.errors.CarFilterException;
 import com.scraper.errors.CarSectionInitException;
+import com.scraper.factory.FactoryProvider;
 import org.openqa.selenium.*;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
@@ -20,27 +19,9 @@ public class ThreeNinesExtractor implements AutoCloseable {
     private WebDriverWait wait;
 
     public ThreeNinesExtractor(String browser) {
-        switch (browser.toLowerCase()) {
-            case "firefox":
-                this.driver = new FirefoxDriver();
-                break;
-            case "chrome":
-                this.driver = new ChromeDriver();
-                break;
-            default:
-                this.driver = new FirefoxDriver();
-                break;
-        }
-
+        this.driver = FactoryProvider.getFactory(browser).createWebDriver();
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(10));
     }
-
-
-    public ThreeNinesExtractor() {
-        this.driver = new ChromeDriver();
-        this.wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-    }
-
 
     public List<Car> extractCars(String brand, String series, String generation) throws InterruptedException {
         try {
@@ -54,20 +35,19 @@ public class ThreeNinesExtractor implements AutoCloseable {
         } catch (WebDriverException e) {
             throw new CarFilterException();
         }
-
         return this.extractCarsFromPages();
     }
 
     public List<Car> extractCars(String brand, String series) throws InterruptedException {
         try {
             this.initiateCarPage();
-        }catch (WebDriverException e) {
+        } catch (WebDriverException e) {
             throw new CarSectionInitException();
         }
 
         try {
             this.applyCarFilter(brand, series);
-        }catch (WebDriverException e) {
+        } catch (WebDriverException e) {
             throw new CarFilterException();
         }
         return this.extractCarsFromPages();
@@ -76,7 +56,7 @@ public class ThreeNinesExtractor implements AutoCloseable {
     public List<Car> extractCars(String brand) throws InterruptedException {
         try {
             this.initiateCarPage();
-        }catch (WebDriverException e) {
+        } catch (WebDriverException e) {
             throw new CarSectionInitException();
         }
         this.applyCarFilter(brand);
@@ -143,9 +123,7 @@ public class ThreeNinesExtractor implements AutoCloseable {
     }
 
     public void initiateCarPage() {
-
         driver.get(link);
-
         WebElement transportSectionLink = wait.until(
                 ExpectedConditions.elementToBeClickable(By.linkText("Transport"))
         );
@@ -159,20 +137,19 @@ public class ThreeNinesExtractor implements AutoCloseable {
     }
 
     public List<Car> extractCarsFromPages() throws InterruptedException {
-
         boolean hasNextPage = true;
-
         List<Car> cars = new ArrayList<>();
         while (hasNextPage) {
-            Thread.sleep(1000);
-
+            Thread.sleep(1500);
             cars.addAll(ThreeNinesHTMLParser.extractCarPrices(driver.getPageSource()));
-
-            WebElement nextButton = driver.findElement(By.className("Pagination_pagination__container__buttons__wrapper__icon__next__A22Rc"));
-
-            if (nextButton.isEnabled()) {
-                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", nextButton);
-            } else {
+            try {
+                WebElement nextButton = driver.findElement(By.className("Pagination_pagination__container__buttons__wrapper__icon__next__A22Rc"));
+                if (nextButton.isEnabled()) {
+                    ((JavascriptExecutor) driver).executeScript("arguments[0].click();", nextButton);
+                } else {
+                    hasNextPage = false;
+                }
+            } catch (NoSuchElementException ignored) {
                 hasNextPage = false;
             }
 
